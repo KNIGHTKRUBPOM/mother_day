@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#05060a" />
+    <title>Happy Birthday MOM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+      * {
+        font-family: 'Prompt', sans-serif;
+      }
+    </style>
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="2.css" />
+  </head>
+  <body>
+    <div id="gradient"></div>
+    <canvas id="c"></canvas>
+    <audio id="bg-music" src="src/music.mp3" preload="auto" loop playsinline webkit-playsinline></audio>
+
+    <!-- Floating gentle hearts in background -->
+    <script>
+      const MIN_DELAY = 900, MAX_DELAY = 2200;
+      const MIN_SIZE = 20, MAX_SIZE = 38;
+      let heartCount = 0, MAX_HEARTS = 7;
+
+      function spawnHeart() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const heartNS = "http://www.w3.org/2000/svg";
+        const size = Math.random() * (MAX_SIZE - MIN_SIZE) + MIN_SIZE;
+        const startX = Math.random() * (width - size * 1.2);
+        const drift = (Math.random() - 0.5) * width * 0.48;
+        const endX = Math.min(Math.max(startX + drift, 0), width - size * 1.2);
+        const duration = 12 + Math.random() * 3;
+
+        const svg = document.createElementNS(heartNS, "svg");
+        svg.setAttribute("width", size);
+        svg.setAttribute("height", size);
+        svg.setAttribute("class", "heart-outline");
+        svg.style.left = `${startX}px`;
+        svg.style.top = `${height - size}px`;
+        svg.style.background = "transparent";
+        svg.style.border = "none";
+
+        const path = document.createElementNS(heartNS, "path");
+        path.setAttribute("d",
+          `M${size/2},${size*0.85} ` +
+          `C${size*0.1},${size*0.6} ${size*0.1},${size*0.2} ${size/2},${size*0.35} ` +
+          `C${size-size*0.1},${size*0.2} ${size-size*0.1},${size*0.6} ${size/2},${size*0.85}`
+        );
+        path.setAttribute("stroke", "#ff86b6");
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke-width", "2.5");
+        path.setAttribute("filter", "drop-shadow(0 0 12px #ff86b6bb)");
+        svg.appendChild(path);
+
+        document.body.appendChild(svg);
+
+        let startTime = null;
+        function animate(now) {
+          if (!startTime) startTime = now;
+          let t = Math.min((now - startTime) / (duration * 1000), 1);
+          let currentX = startX + (endX - startX) * t;
+          let currentY = height - size - (height + 50) * t;
+          svg.style.transform = `translate(${currentX - startX}px, ${currentY - (height - size)}px) scale(${1 + 0.15 * t})`;
+          svg.style.opacity = 0.18 + 0.65 * (1 - Math.abs(t - 0.55));
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            svg.remove();
+            heartCount--;
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+
+      function flowLoop() {
+        if (heartCount < MAX_HEARTS) {
+          spawnHeart();
+          heartCount++;
+        }
+        const nextDelay = Math.random() * (MAX_DELAY - MIN_DELAY) + MIN_DELAY;
+        setTimeout(flowLoop, nextDelay);
+      }
+      flowLoop();
+    </script>
+
+    <!-- Main Fireworks & Floating Balloons Animation (Loops continuously) -->
+    <script src="main.js"></script>
+
+    <!-- Animated Gradient Background -->
+    <script src="bg.js"></script>
+
+    <!-- Background Music Autoplay / User Interaction Handler -->
+    <script>
+      (function() {
+        const bgMusic = document.getElementById("bg-music");
+        if (!bgMusic) return;
+
+        function startMusic() {
+          bgMusic.play().then(() => {
+            window.removeEventListener("click", startMusic);
+            window.removeEventListener("touchstart", startMusic);
+            window.removeEventListener("touchend", startMusic);
+            window.removeEventListener("pointerdown", startMusic);
+            window.removeEventListener("keydown", startMusic);
+          }).catch(err => {
+            // Autoplay policy or no user gesture yet
+          });
+        }
+
+        // Try autoplay on load
+        startMusic();
+
+        // Unlock on any touch/click/key
+        window.addEventListener("click", startMusic);
+        window.addEventListener("touchstart", startMusic, { passive: true });
+        window.addEventListener("touchend", startMusic, { passive: true });
+        window.addEventListener("pointerdown", startMusic, { passive: true });
+        window.addEventListener("keydown", startMusic);
+      })();
+    </script>
+  </body>
+</html>
